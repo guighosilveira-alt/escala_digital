@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plataforma de Escalas</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            /* Imagem de fundo com overlay escuro para destacar o texto */
+            background: linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.75)), 
+                        url('arquivo.png') no-repeat center center/cover;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+
+        /* Topo / Barra Superior */
+        header {
+            display: flex;
+            align-items: center;
+            padding: 16px 20px;
+            background-color: rgba(18, 24, 38, 0.65);
+            backdrop-filter: blur(10px);
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Botão Hambúrguer Estilizado */
+        .hamburger-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 26px;
+            height: 20px;
+            padding: 0;
+            z-index: 11;
+        }
+
+        .hamburger-btn span {
+            width: 100%;
+            height: 3px;
+            background-color: #ffffff;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .app-title {
+            margin-left: 18px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: #f8fafc;
+        }
+
+        /* Máscara de fundo (Overlay) ao abrir o menu */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            z-index: 20;
+        }
+
+        .sidebar-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Menu Lateral Drawer (Esquerda -> Direita) */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -280px; /* Escondido fora da tela */
+            width: 280px;
+            height: 100%;
+            background-color: #111827;
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.6);
+            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 30;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar.active {
+            left: 0; /* Expande para a tela */
+        }
+
+        .sidebar-header {
+            padding: 24px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.15rem;
+            color: #3b82f6;
+            font-weight: 700;
+        }
+
+        .menu-list {
+            list-style: none;
+            padding: 12px 0;
+        }
+
+        .menu-list li a {
+            display: block;
+            padding: 15px 20px;
+            color: #e2e8f0;
+            text-decoration: none;
+            font-size: 0.95rem;
+            transition: background 0.2s ease, color 0.2s ease;
+        }
+
+        .menu-list li a:active,
+        .menu-list li a:hover {
+            background-color: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+        }
+
+        .menu-list li.sair a {
+            color: #f87171;
+        }
+
+        /* Conteúdo Principal */
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .welcome-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 16px;
+            padding: 28px 20px;
+            max-width: 320px;
+            width: 100%;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .welcome-card h1 {
+            font-size: 1.35rem;
+            margin-bottom: 10px;
+        }
+
+        .welcome-card p {
+            font-size: 0.85rem;
+            color: #cbd5e1;
+            line-height: 1.4;
+        }
+
+        /* Rodapé */
+        footer {
+            padding: 14px 16px;
+            background-color: rgba(11, 15, 25, 0.85);
+            text-align: center;
+            font-size: 0.73rem;
+            color: #94a3b8;
+            backdrop-filter: blur(8px);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        footer a {
+            color: #60a5fa;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Topo -->
+    <header>
+        <button class="hamburger-btn" id="toggleMenu" aria-label="Abrir Menu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <span class="app-title">PLATAFORMA DE ESCALAS</span>
+    </header>
+
+    <!-- Overlay de fundo -->
+    <div class="sidebar-overlay" id="overlay"></div>
+
+    <!-- Menu Lateral (Off-canvas) -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2>Menu Principal</h2>
+        </div>
+        <ul class="menu-list">
+            <li><a href="#cadastrar-colaborador">Cadastrar colaborador</a></li>
+            <li><a href="#gerar-escala">Gerar escala</a></li>
+            <li><a href="#cadastro-gestor">Cadastro gestor</a></li>
+            <li><a href="#sobre">Sobre a aplicação</a></li>
+            <li class="sair"><a href="#sair">Sair</a></li>
+        </ul>
+    </nav>
+
+    <!-- Centro da Tela Inicial -->
+    <main>
+        <div class="welcome-card">
+            <h1>Plataforma de Escalas</h1>
+            <p>Toque no ícone do menu no canto superior esquerdo para acessar os módulos de cadastro e gestão.</p>
+        </div>
+    </main>
+
+    <!-- Rodapé -->
+    <footer>
+        © 2026 – desenvolvido por Rodrigo Silveira. Versão 1.0.0 – <a href="#termos" id="termsBtn">termos de uso clique aqui</a>
+    </footer>
+
+    <script>
+        const toggleBtn = document.getElementById('toggleMenu');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        const termsBtn = document.getElementById('termsBtn');
+
+        function openMenu() {
+            sidebar.classList.add('active');
+            overlay.classList.add('active');
+        }
+
+        function closeMenu() {
+            sidebar.classList.remove('active');
+            overlay.classList.remove('active');
+        }
+
+        toggleBtn.addEventListener('click', openMenu);
+        overlay.addEventListener('click', closeMenu);
+
+        // Ação ao clicar nos itens do menu
+        document.querySelectorAll('.menu-list a').forEach(link => {
+            link.addEventListener('click', (e) => {
+                closeMenu();
+            });
+        });
+
+        // Evento dos Termos de Uso
+        termsBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            alert('Termos de Uso:\n\nAplicação voltada para a gestão e controle de escalas de trabalho.');
+        });
+    </script>
+</body>
+</html>
